@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+  <head>
+    <title>
+      Child Class Builder Utility
+    </title>
+  </head>
+  <body bgcolor="#000000" text="#FFFFFF">
+    <h1 align="center">Child Class Builder Utility</h1>
+    <p align="center">v1.0 By Mel Grubb II</p>
+    <hr>
+    <p>This document is not meant as a tutorial on the mechanics of interface
+    inheritance, but I will try to touch on as many of the high points as
+    possible without getting caught up in term definitions and such.</p>
+    <hr>
+    <ol>
+      <li>
+        Purpose 
+        <p>Automates the process of building child classes that inherit or
+        extend a parent class in Visual Basic.</p>
+      </li>
+      <li>
+        Theory 
+        <p>VB Supports inheritance through Interfaces, but most programmers
+        don't know how they work, or how to implement them. For a class of
+        significant size, the act of creating a child class can be a significat
+        undertaking, so most programmers never bother to try them.</p>
+        <p>In fact, they are extremely flexible, and not that hard to
+        understand at all, although they do have a few shortcomings. Interface
+        inheritance does not easily allow for multiple inheritance levels
+        without some work on the part of the programmer, resulting in a class
+        hierarchy that is only two levels deep. Also, Events are not supported
+        through interface inheritance, although there are ways around this
+        limitation as well. (See the April 2000 VBPJ for an example)</p>
+        <p>Discussions of multiple inheritance levels and event handling can be
+        found at the end of this document.</p>
+      </li>
+      <li>
+        Features 
+        <p>Fully implements Polymorphism to the extent allowed by VB. Preserves
+        original formatting as closely as possible. Multiple-line function
+        declarations remain multiple-line in the child class. Methods and
+        Properties appear in the same order as the parent class. Resembles as
+        closely as possible, the VB6 Class Builder Utility.</p>
+      </li>
+      <li>
+        Interface 
+        <p>The interface resembles the VB6 Class Builder Utility as closely as
+        practical with a few minor differences. There is, for instance, no
+        toolbar because there wasn't really enough to put in it.</p>
+        <p>On the left is a text box for specifying the name of the new class
+        to be created, and a list of classes to inherit from. Selecting a base
+        class from the list will show its Properties and Methods in the list on
+        the right. There are three filtering tabs available to show Properties,
+        Methods, or both. This list is informational only, and cannot be
+        edited. These filters can also be selected from the View menu.</p>
+      </li>
+      <li>
+        Usage 
+        <p>Providing a name for the new class, and selecting a base class to
+        inherit from is all that's required. Selecting "Update Project" from
+        the File menu will create the new class in the current project. Also,
+        closing the interface will automatically prompt as necessary to update
+        the project.</p>
+      </li>
+      <li>
+        What it does 
+        <p>A new child class is created which implements the base class'
+        interface. In addition, a private member instance of the base class is
+        created so that the child class may delegate method and property calls
+        to it. In this way, the code for implementing a method or property
+        appears only once, in the base class, but all the children of that
+        class still have those methods and properties.</p>
+        <p>Public methods and properties of the base class are considered its
+        interface. These show up in the child class as private Subs and
+        Properties with the name of the base class tacked on the front. When
+        using the base class' interface to deal with the child class, VB will
+        resolve this and call these private methods and properties behind the
+        scenes.</p>
+        <p>This does create one problem, though. These methods and properties,
+        being private, are not accessable through the child class' interface,
+        only through the base class'. The Child Class Builder takes care of
+        this for you by duplicating the public members of the base class in the
+        child class as public methods and properties with the same names. The
+        internal, private members delegate to the public members of the child
+        class, which in turn delegate to the public members of the base
+        class.</p>
+        <p>Strictly speaking, the delegation should be going the other way with
+        the public members of the child class delegating to the private,
+        interface members, which would then delegate to the base class, but
+        that can tend to logically break up the code in your new child class.
+        Done this way, you can effectively forget that the interface members
+        exist, and leave them tucked away at the bottom of the new child class,
+        concentrating instead on the more normally named public members which
+        appear in the [General] section.</p>
+      </li>
+      <li>
+        Now what do you do with it? 
+        <p>From here, you begin customizing your new child class. Things that
+        don't change from the base class to the child class can be simply left
+        alone, and they will continue to work as they did for the base class.
+        You can, however "extend" the base class behavior by adding code before
+        or after the call to the base class. You can also "Override" the base
+        class behavior by completely replacing the delegation with new
+        code.</p>
+        <p>You must override base class behavior in the case of "Virtual
+        Members". These are members of the base class which contain no code.
+        The purpose of defining a virtual member is to ensure that any classes
+        descended from it must have a member with that name. An example would
+        be a base class for representing shapes. If you want to ensure that all
+        descendents of CShape will have an "Area" property, you would add the
+        Area property to the CShape class. However, since the method of
+        determining the are of a Circle is different from a Square, you would
+        not put any code in the CShape.Area property. Later, the CCircle and
+        CSquare classes would not be allowed to compile unless they implemented
+        the Area property.</p>
+        <p>The Child Class Builder will treat virtual members the same as any
+        other member of the base class interface, and build code to delegate
+        behavior to the base class. In the case of a virtual member, this will
+        result in code that will compile just fine, but the member won't
+        actually DO anything until you override the delegation.</p>
+      </li>
+      <li>
+        Advanced Topics
+		<ul>
+          <li>
+            Multiple inheritance levels:<br>
+             It is possible to create multiple levels of inheritance, but it
+            requires a bit of hand-copying. This part could have been
+            automated, but I feel the results would have been quite messy, and
+            it is impossible for a computer program to make truly intelligent
+            decisions about such things. 
+            <p>Example:<br>
+             CLandVehicle is descended from CVehicle, and CCar is descended
+            from CLandVehicle. Through interface inheritance, you are allowed
+            to use an instance of CLandVehicle anywhere an instance of CVehicle
+            is required, but you WON'T be allowed to use CCar because CCar does
+            not implement the CVehicle interface. We have to stack the
+            interfaces up with each child class implementing all the interfaces
+            of its predecessor(s). So we need to add the CVehicle interface to
+            CCar.</p>
+            <p>How-To:<br>
+             Simply insert "Implements CVehicle" at the top of the CCar class,
+            and then copy all the methods and properties that start with
+            "CVehicle_" from the CLandVehicle class.</p>
+            <p>Why not automate it?<br>
+             Without parsing out the whole VB language, and writing code to
+            "understand" it, I cannot make the utility intelligently imitate
+            the behavior of the base class. Simply copying the code from the
+            parent to the child may not work because of references to
+            functions, and variables which are private to the base class. The
+            result would be that for "family trees" of any complexity, the
+            further you go from the root, the more errors there would be.</p>
+            <p>This is simply one area in which human intervention is
+            required.</p>
+          </li>
+
+          <li>
+            Inheriting Events:<br>
+             Strictly speaking, you can't do this, at least not directly.
+            Without going into the gritty details, here is the basic strategy. 
+            <ol>
+              <li>Create a seperate class to handle the events. It should have
+              one method, RaiseEvent, that takes arguments to identify the
+              event, and any parameters it uses.</li>
+              <li>Give each base class a private instance of the class from
+              step 1</li>
+              <li>Give each base class a property that returns a reference to
+              that instance.</li>
+              <li>Have the "outside world" retrieve and listen to that object
+              for events. It's a kludge, but it works.</li>
+            </ol>
+          </li>
+        </ul>
+      </li>
+    </ol>
+    <hr>
+    <p>Original Code &copy;2001 Mel Grubb II<br>
+     CSplitDDC.cls by Steve McMahon (www.VBAccelerator.com)</p>
+    <hr>
+  </body>
+</html>
+
+<menu></menu>
